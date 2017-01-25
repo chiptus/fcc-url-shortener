@@ -1,15 +1,26 @@
-const { MongoClient, Server } = require('mongodb');
-
-
+const { MongoClient } = require('mongodb');
+const { DB_URL } = require('./config');
 
 
 function makeNewUrl(url = '') {
-  MongoClient.connect('mongodb://localhost:27017/db', (err, db) => {
-    if (err) throw err;
-    console.log("connected to mongo");
-
-    db.close();
-  });
+  if (!url) {
+    return Promise.reject({ error: "no url" });
+  }
+  return MongoClient.connect(DB_URL)
+    .then((db) => {
+      const coll = db.collection('urls');
+      return new Promise(
+        (res, rej) => {
+          coll.insertOne({
+            url,
+            key: '$inc',
+          }, (err, data) => {
+            if (err) rej({ error: err });
+            db.close();
+            res("suc");
+          });
+        });
+    });
 }
 
 
