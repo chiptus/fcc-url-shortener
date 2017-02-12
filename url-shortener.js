@@ -1,6 +1,6 @@
 const { MongoClient } = require('mongodb');
 const { DB_URL } = require('./config');
-const { getNextSequence } = require('./db-utils');
+const { getNextSequence } = require('./utils/db');
 const { isValidWebUri } = require('./utils/url');
 
 function makeNewUrl(originalUrl = '') {
@@ -27,11 +27,12 @@ function makeNewUrl(originalUrl = '') {
 }
 
 function getUrl(urlId) {
+  console.log("get url");
   return MongoClient.connect(DB_URL)
     .then(db => {
       return db.collection('urls')
         .findOne({ shortUrlId: urlId })
-        .then(doc => doc.originalUrl)
+        .then(doc => doc.originalUrl);
     });
 }
 
