@@ -1,6 +1,6 @@
 const express = require('express');
 const { makeNewUrl, getUrl } = require('./url-shortener');
-const { initialDbCall } = require('./db-utils');
+const { initialDbCall } = require('./utils/db');
 
 const port = process.env.PORT || 3000;
 const app = express();
@@ -8,7 +8,13 @@ const app = express();
 initialDbCall();
 
 app.get('/:urlId', (req, res) => {
-  getUrl(+req.params.urlId)
+  const urlId = +req.params.urlId;
+  if (Number.isNaN(urlId)) {
+    res.send({ error: 'Need to supply url id' });
+    res.end();
+    return;
+  }
+  getUrl(urlId)
     .then(url => res.redirect(url));
 });
 

@@ -1,5 +1,5 @@
 const { MongoClient: { connect } } = require('mongodb');
-const { DB_URL } = require('./config');
+const { DB_URL } = require('../config');
 
 module.exports = {
   initialDbCall,
