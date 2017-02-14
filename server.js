@@ -5,7 +5,18 @@ const { initialDbCall } = require('./utils/db');
 const port = process.env.PORT || 3000;
 const app = express();
 
-initialDbCall();
+initialDbCall()
+  .catch(reason => {
+    console.error('error running initial db call', reason);
+    process.exit(1);
+  });
+
+app.all('/new/*', (req, res) => {
+  makeNewUrl(req.params[0])
+    .then(result => res.send(result))
+    .catch(err => res.send({ error: err.message }))
+    .then(() => res.end());
+});
 
 app.get('/:urlId', (req, res) => {
   const urlId = +req.params.urlId;
@@ -15,15 +26,11 @@ app.get('/:urlId', (req, res) => {
     return;
   }
   getUrl(urlId)
-    .then(url => res.redirect(url));
+    .then(url => res.redirect(url))
+    .catch(err => res.end(JSON.stringify(err)));
 });
 
-app.all('/new/*', (req, res) => {
-  makeNewUrl(req.params[0])
-    .then(result => res.send(result))
-    .catch(err => res.send({ error: err.message }))
-    .then(() => res.end());
-});
+
 
 app.listen(port, () => {
   console.log(`Listening on port ${port}`);
