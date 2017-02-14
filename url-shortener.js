@@ -15,16 +15,39 @@ function transformDbResult(originalUrl) {
   });
 }
 
-function insertUrlObject(originalUrl) {
+function closeDbAndForwardResult(db, closeDb) {
+  return (result) => {
+    if (closeDb) {
+      db.close();
+    }
+    return result;
+  };
+}
+
+function insertUrlObject(originalUrl, closeDb = true) {
   return ({ seq, db }) =>
     db.collection('urls')
       .insertOne({
         shortUrlId: seq,
         originalUrl,
       })
+      .then(closeDbAndForwardResult(db, closeDb))
       .then(transformDbResult(originalUrl));
 }
 
+
+
+function findOriginalUrl(urlId, closeDb = true) {
+  return db => db.collection('urls')
+    .findOne({ shortUrlId: urlId })
+    .then(doc => doc.originalUrl)
+    .then(closeDbAndForwardResult(db, closeDb));
+}
+
+function getUrl(urlId) {
+  return MongoClient.connect(DB_URL)
+    .then(findOriginalUrl(urlId));
+}
 
 function makeNewUrl(originalUrl = '') {
   if (!isValidWebUri(originalUrl)) {
@@ -32,21 +55,7 @@ function makeNewUrl(originalUrl = '') {
   }
   return MongoClient.connect(DB_URL)
     .then(getNextSequenceAndForwardDb)
-    .then(insertUrlObject(originalUrl))
-    .catch((reason) => {
-      console.error(reason);
-    });
-}
-
-function findOriginalUrl(urlId) {
-  return db => db.collection('urls')
-    .findOne({ shortUrlId: urlId })
-    .then(doc => doc.originalUrl);
-}
-
-function getUrl(urlId) {
-  return MongoClient.connect(DB_URL)
-    .then(findOriginalUrl(urlId));
+    .then(insertUrlObject(originalUrl));
 }
 
 module.exports = {

@@ -7,11 +7,10 @@ module.exports = {
 };
 
 function initialDbCall() {
-  connect(DB_URL)
-    .then(
-    (db) => {
+  return connect(DB_URL)
+    .then((db) => {
       const counters = db.collection('counters');
-      //adds a new document only if needed
+      // adds a new document only if needed
       counters.findAndModify(
         { _id: 'urls' },
         null,
@@ -20,10 +19,9 @@ function initialDbCall() {
         },
         {
           upsert: true,
+        }).then(() => {
+          db.close();
         });
-    },
-    (reason) => {
-      console.error(reason);
     });
 }
 
