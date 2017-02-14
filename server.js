@@ -14,7 +14,7 @@ initialDbCall()
 app.use(express.static('public'));
 
 app.all('/new/*', (req, res) => {
-  makeNewUrl(req.params[0])
+  makeNewUrl(req.params[0], buildBaseUrl(req))
     .then(result => res.send(result))
     .catch(err => res.send({ error: err.message }))
     .then(() => res.end());
@@ -37,3 +37,8 @@ app.get('/:urlId', (req, res) => {
 app.listen(port, () => {
   console.log(`Listening on port ${port}`);
 });
+
+
+function buildBaseUrl(req) {
+  return req.headers.host;
+}

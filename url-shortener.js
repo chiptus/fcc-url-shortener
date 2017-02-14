@@ -8,10 +8,10 @@ function getNextSequenceAndForwardDb(db) {
     .then(seq => ({ seq, db }));
 }
 
-function transformDbResult(originalUrl) {
+function transformDbResult(originalUrl, baseUrl) {
   return result => ({
     originalUrl,
-    shortUrl: `http://localhost:3000/${result.ops[0].shortUrlId}`,
+    shortUrl: `http://${baseUrl}/${result.ops[0].shortUrlId}`,
   });
 }
 
@@ -24,7 +24,7 @@ function closeDbAndForwardResult(db, closeDb) {
   };
 }
 
-function insertUrlObject(originalUrl, closeDb = true) {
+function insertUrlObject(originalUrl, baseUrl, closeDb = true) {
   return ({ seq, db }) =>
     db.collection('urls')
       .insertOne({
@@ -32,7 +32,7 @@ function insertUrlObject(originalUrl, closeDb = true) {
         originalUrl,
       })
       .then(closeDbAndForwardResult(db, closeDb))
-      .then(transformDbResult(originalUrl));
+      .then(transformDbResult(originalUrl, baseUrl));
 }
 
 
@@ -49,13 +49,13 @@ function getUrl(urlId) {
     .then(findOriginalUrl(urlId));
 }
 
-function makeNewUrl(originalUrl = '') {
+function makeNewUrl(originalUrl = '', baseUrl = 'localhost:3000') {
   if (!isValidWebUri(originalUrl)) {
     return Promise.reject(new Error('not valid url'));
   }
   return MongoClient.connect(DB_URL)
     .then(getNextSequenceAndForwardDb)
-    .then(insertUrlObject(originalUrl));
+    .then(insertUrlObject(originalUrl, baseUrl));
 }
 
 module.exports = {
