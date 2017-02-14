@@ -11,6 +11,8 @@ initialDbCall()
     process.exit(1);
   });
 
+app.use(express.static('public'));
+
 app.all('/new/*', (req, res) => {
   makeNewUrl(req.params[0])
     .then(result => res.send(result))
